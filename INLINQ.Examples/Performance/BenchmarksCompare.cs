@@ -1,11 +1,37 @@
 ﻿using BenchmarkDotNet.Attributes;
+using INLINQ.Core;
 using static INLINQ.Core.InLinq;
 
 namespace INLINQ.Examples.Performance
 {
     [MemoryDiagnoser(false)]
     public class BenchmarksCompare
-    {
+    {   public enum BENCHMARK_MODE
+        {
+           INLINQ, LINQ
+        };
+
+        [Params(100, 100_000, 100_000_000)]
+        public int LENGTH { get; set; }
+
+        [Params(BENCHMARK_MODE.LINQ, BENCHMARK_MODE.INLINQ)]
+        public BENCHMARK_MODE MODE { get; set; }
+
+
+        [GlobalSetup]
+        public void DoSetup()
+        {
+            if (MODE == BENCHMARK_MODE.LINQ)
+            {
+                InLinq.SetModeLinq();
+            }
+            else
+            {
+                InLinq.SetModeInLinqRuntime();
+            }
+        }
+
+
         public class TestObject
         {
             public long Id { get; set; }
@@ -21,17 +47,13 @@ namespace INLINQ.Examples.Performance
 
         }
 
-        [Params(100, 10_000, 1_000_000)]
-        public int LENGTH { get; set; }
-
-        [Params(LINQ_MODE.LINQ, LINQ_MODE.INLINQ)]
-        public LINQ_MODE MODE { get; set; }
+        
+        
 
 
         [Benchmark]
         public bool RangeSelectAll()
         {
-            Mode = MODE;
             var query =
                 from id in Range(0, LENGTH)
                 select new TestObject(id, id * 3, 1 + 100 * id);
@@ -41,7 +63,6 @@ namespace INLINQ.Examples.Performance
         [Benchmark]
         public long RangeSelectWhereSum()
         {
-            Mode = MODE;
             var testObjects =
                 from id in Range(0, LENGTH)
                 select new TestObject(id, id * 3, 1 + 100 * id);
