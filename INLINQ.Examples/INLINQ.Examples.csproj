@@ -5,15 +5,27 @@
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <Configurations>Debug;Release;Recompile</Configurations>
+    
+    <InterceptorsPreviewNamespaces>$(InterceptorsPreviewNamespaces);Recompiled</InterceptorsPreviewNamespaces>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Recompile|AnyCPU'">
+    <DefineConstants>$(DefineConstants);RECOMPILE</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="BenchmarkDotNet" Version="0.13.12" />
-    <PackageReference Include="INLINQ.Core" Version="0.2.2-alpha" />
   </ItemGroup>
 
   <ItemGroup>
     <Using Remove="System.Linq" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="INLINQ.Core">
+      <HintPath>..\..\INLINQ.Internal\INLINQ.Core\bin\Release\net8.0\INLINQ.Core.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
 </Project>
