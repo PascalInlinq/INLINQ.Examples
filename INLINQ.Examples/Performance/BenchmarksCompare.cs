@@ -1,35 +1,22 @@
 ﻿using BenchmarkDotNet.Attributes;
-using INLINQ.Core;
-using static INLINQ.Core.InLinq;
+using INLINQ.Core.Recompile;
+
+//using INLINQ.Core;
+#if RECOMPILE
+using static INLINQ.Core.Generate.InLinqGenerate;
+#else
+using static INLINQ.Core.Generated.InLinqGenerated;
+#endif
+using LINQ = System.Linq.Enumerable;
 
 namespace INLINQ.Examples.Performance
 {
     [MemoryDiagnoser(false)]
+    [Recompile]
     public class BenchmarksCompare
-    {   public enum BENCHMARK_MODE
-        {
-           INLINQ, LINQ
-        };
-
-        [Params(100, 100_000, 100_000_000)]
+    {   
+        [Params(1, 100,  100_000 , 100_000_000)]
         public int LENGTH { get; set; }
-
-        [Params(BENCHMARK_MODE.LINQ, BENCHMARK_MODE.INLINQ)]
-        public BENCHMARK_MODE MODE { get; set; }
-
-
-        [GlobalSetup]
-        public void DoSetup()
-        {
-            if (MODE == BENCHMARK_MODE.LINQ)
-            {
-                InLinq.SetModeLinq();
-            }
-            else
-            {
-                InLinq.SetModeInLinqRuntime();
-            }
-        }
 
 
         public class TestObject
@@ -52,28 +39,45 @@ namespace INLINQ.Examples.Performance
 
 
         [Benchmark]
-        public bool RangeSelectAll()
+        public bool InLinqAll()
+        {
+            return InLinqAll(LENGTH);
+        }
+
+        public static bool InLinqAll(int length)
         {
             var query =
-                from id in Range(0, LENGTH)
+                from id in Range(0, length)
                 select new TestObject(id, id * 3, 1 + 100 * id);
             return query.All(x => x.Value > 0);
         }
 
         [Benchmark]
-        public long RangeSelectWhereSum()
+        public bool LinqAll()
         {
-            var testObjects =
-                from id in Range(0, LENGTH)
-                select new TestObject(id, id * 3, 1 + 100 * id);
-
-            var sumValue =
-                (from testObject in testObjects
-                 where testObject.Value > 0
-                 select testObject.Value * (80 / 5)).Sum();
-
-            return sumValue;
+            return LINQ.All(LINQ.Select(LINQ.Range(0, LENGTH), id => new TestObject(id, id * 3, 1 + 100 * id)), x => x.Value > 0);
         }
+
+
+        //[Benchmark]
+        //public long InLinqWhereSum()
+        //{
+        //    return InLinqWhereSum(LENGTH);
+        //}
+
+        //public static long InLinqWhereSum(int length)
+        //{
+        //    var testObjects =
+        //        from id in Range(0, length)
+        //        select new TestObject(id, id * 3, 1 + 100 * id);
+
+        //    var sumValue =
+        //        (from testObject in testObjects
+        //         where testObject.Value > 0
+        //         select testObject.Value * (80 / 5)).Sum();
+
+        //    return sumValue;
+        //}
 
 
     }
